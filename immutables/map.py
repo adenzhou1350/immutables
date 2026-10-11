@@ -97,7 +97,7 @@ class BitmapNode:
                     ret.array[val_idx] = sub_node
                     return ret, added
 
-            if key == key_or_null:
+            if key is key_or_null or key == key_or_null:
                 if val is val_or_node:
                     return self, False
 
@@ -169,7 +169,7 @@ class BitmapNode:
         if key_or_null is _NULL:
             return val_or_node.find(shift + 5, hash, key)
 
-        if key == key_or_null:
+        if key is key_or_null or key == key_or_null:
             return val_or_node
 
         raise KeyError(key)
@@ -220,7 +220,7 @@ class BitmapNode:
                 return res, None
 
         else:
-            if key == key_or_null:
+            if key is key_or_null or key == key_or_null:
                 if self.size == 2:
                     return W_EMPTY, None
 
@@ -299,13 +299,13 @@ class CollisionNode:
 
     def find_index(self, key):
         for i in range(0, self.size, 2):
-            if self.array[i] == key:
+            if self.array[i] is key or self.array[i] == key:
                 return i
         return -1
 
     def find(self, shift, hash, key):
         for i in range(0, self.size, 2):
-            if self.array[i] == key:
+            if self.array[i] is key or self.array[i] == key:
                 return self.array[i + 1]
         raise KeyError(key)
 
@@ -501,7 +501,7 @@ class Map:
             except KeyError:
                 return False
             else:
-                if oval != val:
+                if oval is not val and oval != val:
                     return False
 
         return True
@@ -850,7 +850,7 @@ class MapMutation:
             except KeyError:
                 return False
             else:
-                if oval != val:
+                if oval is not val and oval != val:
                     return False
 
         return True

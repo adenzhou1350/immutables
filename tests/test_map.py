@@ -83,6 +83,69 @@ class BaseMapTest:
         self.assertEqual(len(h2), 1)
         self.assertIsNot(h1.get('key'), h2.get('key'))
 
+    def test_map_nan_key_identity(self):
+        key = float('nan')
+        original = self.Map().set(key, 1)
+        self.assertEqual(original[key], 1)
+        self.assertIn(key, original)
+        self.assertEqual(original.get(key), 1)
+
+        updated = original.set(key, 2)
+        self.assertEqual(len(updated), 1)
+        self.assertEqual(updated[key], 2)
+        self.assertEqual(original[key], 1)
+        self.assertEqual(len(original.update([(key, 3)])), 1)
+        self.assertEqual(len(original.delete(key)), 0)
+
+        mutation = original.mutate()
+        mutation[key] = 4
+        self.assertEqual(len(mutation), 1)
+        self.assertEqual(mutation.pop(key), 4)
+        self.assertEqual(len(mutation.finish()), 0)
+
+    def test_map_colliding_nonreflexive_key_identity(self):
+        class Key:
+            def __hash__(self):
+                return 1
+
+            def __eq__(self, other):
+                return False
+
+        first, second, missing = Key(), Key(), Key()
+        original = self.Map([(first, 1), (second, 2)])
+        self.assertEqual(original[first], 1)
+        self.assertEqual(original[second], 2)
+        self.assertNotIn(missing, original)
+
+        updated = original.set(first, 3)
+        self.assertEqual(len(updated), 2)
+        self.assertEqual(updated[first], 3)
+        self.assertEqual(updated[second], 2)
+        self.assertEqual(original[first], 1)
+        self.assertEqual(list(original.delete(first).values()), [2])
+
+        mutation = original.mutate()
+        mutation[second] = 4
+        self.assertEqual(len(mutation), 2)
+        self.assertEqual(mutation.pop(second), 4)
+        self.assertEqual(mutation[first], 1)
+        del mutation[first]
+        self.assertEqual(len(mutation.finish()), 0)
+
+    def test_map_nan_value_identity(self):
+        value = float('nan')
+        first = self.Map(value=value)
+        second = self.Map(value=value)
+        self.assertEqual(first, first)
+        self.assertEqual(first, second)
+        self.assertNotEqual(first, self.Map(value=float('nan')))
+
+        first_mut = first.mutate()
+        second_mut = second.mutate()
+        self.assertEqual(first_mut, first_mut)
+        self.assertEqual(first_mut, second_mut)
+        self.assertNotEqual(first_mut, self.Map(value=float('nan')).mutate())
+
     def test_map_collision_1(self):
         k1 = HashKey(10, 'aaa')
         k2 = HashKey(10, 'bbb')
